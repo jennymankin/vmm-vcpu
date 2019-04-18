@@ -14,155 +14,194 @@
 use std::mem::size_of;
 
 ///
-/// Use kvm_bindings behind the scenes as these are architectural structures and
-/// not actually KVM-dependent, but export as generically-named data
-/// structures to be consumed by any VMM's vCPU implementation
-///
-
 /// Single MSR to be read/written
 ///
-/// pub struct kvm_msr_entry {
-///     pub index: __u32,
-///     pub reserved: __u32,
-///     pub data: __u64,
-/// }
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Debug, Default)]
+pub struct MsrEntry {
+    pub index: u32,
+    pub reserved: u32,
+    pub data: u64,
+}
+
+#[cfg(unix)]
 pub use kvm_bindings::kvm_msr_entry as MsrEntry;
 
+///
 /// Array of MSR entries
 ///
-///
-/// pub struct kvm_msrs {
-///     pub nmsrs: __u32,
-///     pub pad: __u32,
-///     pub entries: __IncompleteArrayField<kvm_msr_entry>,
-/// }
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Debug, Default)]
+pub struct MsrEntries {
+    pub nmsrs: u32,
+    pub pad: u32,
+    pub entries: __IncompleteArrayField<MsrEntry>,
+}
+
+#[cfg(unix)]
 pub use kvm_bindings::kvm_msrs as MsrEntries;
 
+///
 /// Standard registers (general purpose plus instruction pointer and flags)
 ///
-/// pub struct kvm_regs {
-///    pub rax: __u64,
-///    pub rbx: __u64,
-///    pub rcx: __u64,
-///    pub rdx: __u64,
-///    pub rsi: __u64,
-///    pub rdi: __u64,
-///    pub rsp: __u64,
-///    pub rbp: __u64,
-///    pub r8: __u64,
-///    pub r9: __u64,
-///    pub r10: __u64,
-///    pub r11: __u64,
-///    pub r12: __u64,
-///    pub r13: __u64,
-///    pub r14: __u64,
-///    pub r15: __u64,
-///    pub rip: __u64,
-///    pub rflags: __u64,
-/// }
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Debug, Default)]
+pub struct StandardRegisters {
+    pub rax: u64,
+    pub rbx: u64,
+    pub rcx: u64,
+    pub rdx: u64,
+    pub rsi: u64,
+    pub rdi: u64,
+    pub rsp: u64,
+    pub rbp: u64,
+    pub r8: u64,
+    pub r9: u64,
+    pub r10: u64,
+    pub r11: u64,
+    pub r12: u64,
+    pub r13: u64,
+    pub r14: u64,
+    pub r15: u64,
+    pub rip: u64,
+    pub rflags: u64,
+}
+
+#[cfg(unix)]
 pub use kvm_bindings::kvm_regs as StandardRegisters;
 
+///
 /// Special registers (segment, task, descriptor table, control, and additional
 /// registers, plus the interrupt bitmap)
 ///
-/// pub struct kvm_sregs {
-///    pub cs: kvm_segment,
-///    pub ds: kvm_segment,
-///    pub es: kvm_segment,
-///    pub fs: kvm_segment,
-///    pub gs: kvm_segment,
-///    pub ss: kvm_segment,
-///    pub tr: kvm_segment,
-///    pub ldt: kvm_segment,
-///    pub gdt: kvm_dtable,
-///    pub idt: kvm_dtable,
-///    pub cr0: __u64,
-///    pub cr2: __u64,
-///    pub cr3: __u64,
-///    pub cr4: __u64,
-///    pub cr8: __u64,
-///    pub efer: __u64,
-///    pub apic_base: __u64,
-///    pub interrupt_bitmap: [__u64; 4usize],
-/// }
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Debug, Default)]
+pub struct SpecialRegisters {
+    pub cs: SegmentRegister,
+    pub ds: SegmentRegister,
+    pub es: SegmentRegister,
+    pub fs: SegmentRegister,
+    pub gs: SegmentRegister,
+    pub ss: SegmentRegister,
+    pub tr: SegmentRegister,
+    pub ldt: SegmentRegister,
+    pub gdt: DescriptorTable,
+    pub idt: DescriptorTable,
+    pub cr0: u64,
+    pub cr2: u64,
+    pub cr3: u64,
+    pub cr4: u64,
+    pub cr8: u64,
+    pub efer: u64,
+    pub apic_base: u64,
+    pub interrupt_bitmap: [u64; 4usize],
+}
+
+#[cfg(unix)]
 pub use kvm_bindings::kvm_sregs as SpecialRegisters;
 
+///
 /// Segment register (used for CS, DS, ES, FS, GS, SS)
 ///
-/// pub struct kvm_segment {
-///    pub base: __u64,
-///    pub limit: __u32,
-///    pub selector: __u16,
-///    pub type_: __u8,
-///    pub present: __u8,
-///    pub dpl: __u8,
-///    pub db: __u8,
-///    pub s: __u8,
-///    pub l: __u8,
-///    pub g: __u8,
-///    pub avl: __u8,
-///    pub unusable: __u8,
-///    pub padding: __u8,
-/// }
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Debug, Default)]
+pub struct SegmentRegister {
+    pub base: u64,
+    pub limit: u32,
+    pub selector: u16,
+    pub type_: u8,
+    pub present: u8,
+    pub dpl: u8,
+    pub db: u8,
+    pub s: u8,
+    pub l: u8,
+    pub g: u8,
+    pub avl: u8,
+    pub unusable: u8,
+    pub padding: u8,
+}
+
+#[cfg(unix)]
 pub use kvm_bindings::kvm_segment as SegmentRegister;
 
+///
 /// Descriptor Table
 ///
-/// pub struct kvm_dtable {
-///     pub base: __u64,
-///     pub limit: __u16,
-///     pub padding: [__u16; 3usize],
-/// }
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Debug, Default)]
+pub struct DescriptorTable {
+    pub base: u64,
+    pub limit: u16,
+    pub padding: [u16; 3usize],
+}
+
+#[cfg(unix)]
 pub use kvm_bindings::kvm_dtable as DescriptorTable;
 
-/// Floating Pointe Unit State
 ///
-/// pub struct kvm_fpu {
-///    pub fpr: [[__u8; 16usize]; 8usize],
-///    pub fcw: __u16,
-///    pub fsw: __u16,
-///    pub ftwx: __u8,
-///    pub pad1: __u8,
-///    pub last_opcode: __u16,
-///    pub last_ip: __u64,
-///    pub last_dp: __u64,
-///    pub xmm: [[__u8; 16usize]; 16usize],
-///    pub mxcsr: __u32,
-///    pub pad2: __u32,
-/// }
+/// Floating Point Unit State
+///
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Debug, Default)]
+pub struct FpuState {
+    pub fpr: [[u8; 16usize]; 8usize],
+    pub fcw: u16,
+    pub fsw: u16,
+    pub ftwx: u8,
+    pub pad1: u8,
+    pub last_opcode: u16,
+    pub last_ip: u64,
+    pub last_dp: u64,
+    pub xmm: [[u8; 16usize]; 16usize],
+    pub mxcsr: u32,
+    pub pad2: u32,
+}
+
+#[cfg(unix)]
 pub use kvm_bindings::kvm_fpu as FpuState;
 
+///
 /// Entry describing a CPUID feature/leaf. Features can be set as responses to
 /// the CPUID instruction.
-/// pub struct kvm_cpuid_entry2 {
-///    pub function: __u32,
-///    pub index: __u32,
-///    pub flags: __u32,
-///    pub eax: __u32,
-///    pub ebx: __u32,
-///    pub ecx: __u32,
-///    pub edx: __u32,
-///    pub padding: [__u32; 3usize],
-/// }
+///
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct CpuIdEntry2 {
+    pub function: u32,
+    pub index: u32,
+    pub flags: u32,
+    pub eax: u32,
+    pub ebx: u32,
+    pub ecx: u32,
+    pub edx: u32,
+    pub padding: [u32; 3usize],
+}
+
+#[cfg(unix)]
 use kvm_bindings::kvm_cpuid_entry2 as CpuIdEntry2;
 
-/// Array of CpuId2 entries, each of which describing a feature/leaf to be set
-/// pub struct kvm_cpuid2 {
-///    pub nent: __u32,
-///    pub padding: __u32,
-///    pub entries: __IncompleteArrayField<kvm_cpuid_entry2>,
-/// }
-use kvm_bindings::kvm_cpuid2 as CpuId2;
-
-/// Unix definition of the LAPIC state, the set of memory mapped registers that
-/// describe the Local APIC. Unix-based VMMs only require 1KB of memory to
-/// describe the LAPIC state.
 ///
-/// pub struct kvm_lapic_state {
-///    pub regs: [::std::os::raw::c_char; 1024usize],
-/// }
+/// Array of CpuId2 entries, each of which describing a feature/leaf to be set
+///
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Debug, Default)]
+pub struct CpuId2 {
+    pub nent: u32,
+    pub padding: u32,
+    pub entries: __IncompleteArrayField<CpuIdEntry2>,
+}
+
 #[cfg(unix)]
-pub use kvm_bindings::kvm_lapic_state as LapicState;
+use kvm_bindings::kvm_cpuid2 as CpuId2;
 
 /// Windows definition of the LAPIC state, the set of memory mapped registers
 /// that describe the Local APIC. Windows-based VMMs require 4KB of memory to
@@ -193,7 +232,7 @@ impl ::std::fmt::Debug for LapicState {
 fn vcpu_test_layout_lapic_state() {
     assert_eq!(
         ::std::mem::size_of::<LapicState>(),
-        1024usize,
+        4096usize,
         concat!("Size of: ", stringify!(LapicState))
     );
     assert_eq!(
@@ -212,6 +251,12 @@ fn vcpu_test_layout_lapic_state() {
         )
     );
 }
+
+/// Unix definition of the LAPIC state, the set of memory mapped registers that
+/// describe the Local APIC. Unix-based VMMs only require 1KB of memory to
+/// describe the LAPIC state.
+#[cfg(unix)]
+pub use kvm_bindings::kvm_lapic_state as LapicState;
 
 // Returns a `Vec<T>` with a size in bytes at least as large as `size_in_bytes`.
 fn vec_with_size_in_bytes<T: Default>(size_in_bytes: usize) -> Vec<T> {
@@ -248,30 +293,30 @@ fn vec_with_array_field<T: Default, F>(count: usize) -> Vec<T> {
 /// Hides the zero length array behind a bounds check.
 pub struct CpuId {
     /// Wrapper over `CpuId2` from which we only use the first element.
-    kvm_cpuid: Vec<CpuId2>,
+    cpuid: Vec<CpuId2>,
     // Number of `CpuIdEntry2` structs at the end of CpuId2.
     allocated_len: usize,
 }
 
 impl Clone for CpuId {
     fn clone(&self) -> Self {
-        let mut kvm_cpuid = Vec::with_capacity(self.kvm_cpuid.len());
-        for _ in 0..self.kvm_cpuid.len() {
-            kvm_cpuid.push(CpuId2::default());
+        let mut cpuid = Vec::with_capacity(self.cpuid.len());
+        for _ in 0..self.cpuid.len() {
+            cpuid.push(CpuId2::default());
         }
 
-        let num_bytes = self.kvm_cpuid.len() * size_of::<CpuId2>();
+        let num_bytes = self.cpuid.len() * size_of::<CpuId2>();
 
         let src_byte_slice =
-            unsafe { std::slice::from_raw_parts(self.kvm_cpuid.as_ptr() as *const u8, num_bytes) };
+            unsafe { std::slice::from_raw_parts(self.cpuid.as_ptr() as *const u8, num_bytes) };
 
         let dst_byte_slice =
-            unsafe { std::slice::from_raw_parts_mut(kvm_cpuid.as_mut_ptr() as *mut u8, num_bytes) };
+            unsafe { std::slice::from_raw_parts_mut(cpuid.as_mut_ptr() as *mut u8, num_bytes) };
 
         dst_byte_slice.copy_from_slice(src_byte_slice);
 
         CpuId {
-            kvm_cpuid,
+            cpuid,
             allocated_len: self.allocated_len,
         }
     }
@@ -281,9 +326,9 @@ impl Clone for CpuId {
 impl PartialEq for CpuId {
     fn eq(&self, other: &CpuId) -> bool {
         let entries: &[CpuIdEntry2] =
-            unsafe { self.kvm_cpuid[0].entries.as_slice(self.allocated_len) };
+            unsafe { self.cpuid[0].entries.as_slice(self.allocated_len) };
         let other_entries: &[CpuIdEntry2] =
-            unsafe { self.kvm_cpuid[0].entries.as_slice(other.allocated_len) };
+            unsafe { self.cpuid[0].entries.as_slice(other.allocated_len) };
         self.allocated_len == other.allocated_len && entries == other_entries
     }
 }
@@ -296,11 +341,11 @@ impl CpuId {
     /// * `array_len` - Maximum number of CPUID entries.
     ///
     pub fn new(array_len: usize) -> CpuId {
-        let mut kvm_cpuid = vec_with_array_field::<CpuId2, CpuIdEntry2>(array_len);
-        kvm_cpuid[0].nent = array_len as u32;
+        let mut cpuid = vec_with_array_field::<CpuId2, CpuIdEntry2>(array_len);
+        cpuid[0].nent = array_len as u32;
 
         CpuId {
-            kvm_cpuid,
+            cpuid,
             allocated_len: array_len,
         }
     }
@@ -310,22 +355,66 @@ impl CpuId {
     pub fn mut_entries_slice(&mut self) -> &mut [CpuIdEntry2] {
         // Mapping the unsized array to a slice is unsafe because the length isn't known.  Using
         // the length we originally allocated with eliminates the possibility of overflow.
-        if self.kvm_cpuid[0].nent as usize > self.allocated_len {
-            self.kvm_cpuid[0].nent = self.allocated_len as u32;
+        if self.cpuid[0].nent as usize > self.allocated_len {
+            self.cpuid[0].nent = self.allocated_len as u32;
         }
-        let nent = self.kvm_cpuid[0].nent as usize;
-        unsafe { self.kvm_cpuid[0].entries.as_mut_slice(nent) }
+        let nent = self.cpuid[0].nent as usize;
+        unsafe { self.cpuid[0].entries.as_mut_slice(nent) }
     }
 
     /// Get a  pointer so it can be passed to the kernel. Using this pointer is unsafe.
     ///
     pub fn as_ptr(&self) -> *const CpuId2 {
-        &self.kvm_cpuid[0]
+        &self.cpuid[0]
     }
 
     /// Get a mutable pointer so it can be passed to the kernel. Using this pointer is unsafe.
     ///
     pub fn as_mut_ptr(&mut self) -> *mut CpuId2 {
-        &mut self.kvm_cpuid[0]
+        &mut self.cpuid[0]
+    }
+}
+
+#[cfg(windows)]
+#[repr(C)]
+#[derive(Default)]
+pub struct __IncompleteArrayField<T>(::std::marker::PhantomData<T>, [T; 0]);
+
+#[cfg(windows)]
+impl<T> __IncompleteArrayField<T> {
+    #[inline]
+    pub fn new() -> Self {
+        __IncompleteArrayField(::std::marker::PhantomData, [])
+    }
+    #[inline]
+    pub unsafe fn as_ptr(&self) -> *const T {
+        ::std::mem::transmute(self)
+    }
+    #[inline]
+    pub unsafe fn as_mut_ptr(&mut self) -> *mut T {
+        ::std::mem::transmute(self)
+    }
+    #[inline]
+    pub unsafe fn as_slice(&self, len: usize) -> &[T] {
+        ::std::slice::from_raw_parts(self.as_ptr(), len)
+    }
+    #[inline]
+    pub unsafe fn as_mut_slice(&mut self, len: usize) -> &mut [T] {
+        ::std::slice::from_raw_parts_mut(self.as_mut_ptr(), len)
+    }
+}
+
+#[cfg(windows)]
+impl<T> ::std::fmt::Debug for __IncompleteArrayField<T> {
+    fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        fmt.write_str("__IncompleteArrayField")
+    }
+}
+
+#[cfg(windows)]
+impl<T> ::std::clone::Clone for __IncompleteArrayField<T> {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self::new()
     }
 }
