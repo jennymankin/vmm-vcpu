@@ -248,7 +248,7 @@ pub struct CpuId2 {
     pub entries: __IncompleteArrayField<CpuIdEntry2>,
 }
 
-/// Windows definition of the LAPIC state, the set of memory mapped registers
+// Windows definition of the LAPIC state, the set of memory mapped registers
 /// that describe the Local APIC. Windows-based VMMs require 4KB of memory to
 /// describe the LAPIC state, or the Windows APIs will fail, even though the
 /// architecture-specified space requirement is only 1KB.
@@ -269,6 +269,16 @@ impl ::std::fmt::Debug for LapicState {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         self.regs[..].fmt(fmt)
     }
+}
+
+#[repr(C)]
+#[derive(Debug, Default)]
+/// Comment
+pub struct MsrListRaw {
+    /// Comment
+    pub nmsrs: u32,
+    /// Comment
+    pub indices: __IncompleteArrayField<u32>,
 }
 
 #[repr(C)]
@@ -1272,5 +1282,37 @@ mod tests {
             )
         );
     }
-
+    #[test]
+    fn vcpu_test_layout_msr_list_raw() {
+        assert_eq!(
+            ::std::mem::size_of::<MsrListRaw>(),
+            4usize,
+            concat!("Size of: ", stringify!(MsrListRaw))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<MsrListRaw>(),
+            4usize,
+            concat!("Alignment of ", stringify!(MsrListRaw))
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<MsrListRaw>())).nmsrs as *const _ as usize },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(MsrListRaw),
+                "::",
+                stringify!(nmsrs)
+            )
+        );
+        assert_eq!(
+            unsafe { &(*(::std::ptr::null::<MsrListRaw>())).indices as *const _ as usize },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(MsrListRaw),
+                "::",
+                stringify!(indices)
+            )
+        );
+    }
 }
