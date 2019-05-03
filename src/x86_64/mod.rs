@@ -437,6 +437,11 @@ impl<T: Default + KvmArray> KvmVec<T> {
         self.as_mut_kvm_struct()
     }
 
+    /// Get the length of the vector
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
     /// Get a mut `Vec<KvmArray::Entry>` that contains all the elements.
     /// It is important to call `mem::forget` after using this vector.
     /// Otherwise rust will destroy it.
