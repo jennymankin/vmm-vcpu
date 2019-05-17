@@ -5,6 +5,9 @@
 #[cfg(windows)]
 pub mod windows;
 
+// For now we'll add this here, but it probably belongs in an arch crate
+pub mod msr_index;
+
 use std::mem::size_of;
 
 ///
