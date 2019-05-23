@@ -21,77 +21,45 @@ pub use arm::VcpuInit;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use x86_64::{
     StandardRegisters, SpecialRegisters, FpuState, MsrEntries, MsrEntry, 
-    CpuId, LapicState
+    CpuId, LapicState, CpuIdEntry2,
 };
-
-///
-/// Reasons for vCPU exits for Windows (Hyper-V) platforms
-///
-#[derive(Debug)]
-#[cfg(windows)]
-pub enum VcpuExit {
-
-    /// Corresponds to WHvRunVpExitReasonNone
-    None,
-    /// Corresponds to WHvRunVpExitReasonMemoryAccess
-    MemoryAccess,
-    /// Corresponds to WHvRunVpExitReasonX64IoPortAccess
-    IoPortAccess,
-    /// Corresponds to WHvRunVpExitReasonUnrecoverableException
-    UnrecoverableException,
-    /// Corresponds to WHvRunVpExitReasonInvalidVpRegisterValue
-    InvalidVpRegisterValue,
-    /// Corresponds to WHvRunVpExitReasonUnsupportedFeature
-    UnsupportedFeature,
-    /// Corresponds to WHvRunVpExitReasonX64InterruptWindow
-    IrqWindowOpen,
-    /// Corresponds to  WHvRunVpExitReasonX64Halt
-    Hlt,
-    /// Corresponds to WHvRunVpExitReasonX64ApicEoi
-    IoapicEoi,
-    /// Corresponds to WHvRunVpExitReasonX64MsrAccess
-    MsrAccess,
-    /// Corresponds to WHvRunVpExitReasonX64Cpuid
-    Cpuid,
-    /// Corresponds to WHvRunVpExitReasonException
-    Exception,
-    /// Corresponds to WHvRunVpExitReasonCanceled
-    Canceled,
-}
 
 ///
 /// Reasons for vCPU exits for Unix-based (KVM) platforms
 ///
 #[derive(Debug)]
-#[cfg(unix)]
 pub enum VcpuExit<'a> {
-    /// Corresponds to KVM_EXIT_UNKNOWN.
+    /// Corresponds to KVM_EXIT_UNKNOWN/WHvRunVpExitReasonNone
     Unknown,
-    /// Corresponds to KVM_EXIT_EXCEPTION.
+    /// Corresponds to KVM_EXIT_EXCEPTION/WHvRunVpExitReasonException
     Exception,
     /// An out port instruction was run on the given port with the given data.
+    /// Corresponds to WHvRunVpExitReasonX64IoPortAccess (Out)
     IoOut(u16 /* port */, &'a [u8] /* data */),
     /// An in port instruction was run on the given port.
     ///
     /// The given slice should be filled in before [run()](struct.VcpuFd.html#method.run)
     /// is called again.
+    /// Corresponds to WHvRunVpExitReasonX64IoPortAccess (In)
     IoIn(u16 /* port */, &'a mut [u8] /* data */),
     /// Corresponds to KVM_EXIT_HYPERCALL.
     Hypercall,
     /// Corresponds to KVM_EXIT_DEBUG.
     Debug,
-    /// Corresponds to KVM_EXIT_HLT.
+    /// Corresponds to KVM_EXIT_HLT/WHvRunVpExitReasonX64Halt
     Hlt,
     /// A read instruction was run against the given MMIO address.
     ///
     /// The given slice should be filled in before [run()](struct.VcpuFd.html#method.run)
     /// is called again.
+    /// Corresponds to WHvRunVpExitReasonMemoryAccess (Read)
     MmioRead(u64 /* address */, &'a mut [u8]),
     /// A write instruction was run against the given MMIO address with the given data.
+    /// Corresponds to WHvRunVpExitReasonMemoryAccess (Write)
     MmioWrite(u64 /* address */, &'a [u8]),
-    /// Corresponds to KVM_EXIT_IRQ_WINDOW_OPEN.
+    /// Corresponds to KVM_EXIT_IRQ_WINDOW_OPEN/WHvRunVpExitReasonX64InterruptWindow
     IrqWindowOpen,
-    /// Corresponds to KVM_EXIT_SHUTDOWN.
+    /// Corresponds to KVM_EXIT_SHUTDOWN/WHvRunVpExitReasonCanceled
     Shutdown,
     /// Corresponds to KVM_EXIT_FAIL_ENTRY.
     FailEntry,
@@ -123,14 +91,26 @@ pub enum VcpuExit<'a> {
     S390Tsch,
     /// Corresponds to KVM_EXIT_EPR.
     Epr,
-    /// Corresponds to KVM_EXIT_SYSTEM_EVENT.
-    SystemEvent,
     /// Corresponds to KVM_EXIT_S390_STSI.
     S390Stsi,
-    /// Corresponds to KVM_EXIT_IOAPIC_EOI.
+    /// Corresponds to KVM_EXIT_IOAPIC_EOI/WHvRunVpExitReasonX64ApicEoi
     IoapicEoi,
     /// Corresponds to KVM_EXIT_HYPERV.
     Hyperv,
+    /// The cpu triggered a system level event which is specified by the type field.
+    /// The first field is the event type and the second field is flags.
+    /// The possible event types are shutdown, reset, or crash.  So far there
+    /// are not any flags defined.
+    SystemEvent(u32 /* event_type */, u64 /* flags */),
+
+    /// Corresponds to WHvRunVpExitReasonX64Cpuid
+    CpuId,
+    /// Corresponds to WHvRunVpExitReasonX64MsrAccess
+    MsrAccess,
+    /// Corresponds to WHvRunVpExitReasonUnsupportedFeature
+    UnsupportedFeature,
+    /// Corresponds to WHvRunVpExitReasonCanceled
+    Canceled,
 }
 
 /// A specialized `Result` type for VCPU operations
