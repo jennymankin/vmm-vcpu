@@ -103,6 +103,10 @@ pub enum VcpuExit<'a> {
     /// are not any flags defined.
     SystemEvent(u32 /* event_type */, u64 /* flags */),
 
+    /// Corresponds to WHvRunVpExitReasonMemoryAccess
+    MemoryAccess,
+    /// Corresponds to WHvRunVpExitReasonX64IoPortAccess 
+    IoPortAccess,
     /// Corresponds to WHvRunVpExitReasonX64Cpuid
     CpuId,
     /// Corresponds to WHvRunVpExitReasonX64MsrAccess
